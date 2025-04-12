@@ -1,0 +1,77 @@
+1、环境搭建 ubuntu18.04 +  cuda11.8
+    安装wsl：
+        https://github.com/microsoft/WSL/releases/tag/2.4.13 
+    下载 wsl.2.4.13.0.x64.msi
+
+    微软商店下载ubuntu18.04
+
+    cuda官网：
+        https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=deb_local
+    下载cuda 11.8 wsl2 .deb
+
+    设置环境变量： vi ~/.bashrc
+    # CUDA 11.8
+    export PATH=/usr/local/cuda-11.8/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64:$LD_LIBRARY_PATH
+
+    此时可以识别    nvcc --version   但是 nvidia-smi无法识别
+    执行：
+        cp /usr/lib/wsl/lib/nvidia-smi /usr/bin/nvidia-smi
+        chmod ogu+x /usr/bin/nvidia-smi
+
+
+2、核函数 
+    __global__ void     /   void __global__ 
+    以上是核函数的固定格式(两种均可，顺序可以改变)
+    ！！！必须用__global__修饰，返回值为void
+
+    注：
+    A.核函数只能访问GPU自己的内存（即显存），不能访问CPU的内存
+    B.核函数不能调用其他函数，只能调用内核函数
+    C.核函数不能使用变长参数、静态变量、指针
+    D.核函数具有异步性，仅由GPU自己控制，不用编程人员进行控制
+    E.核函数不能使用iostream,输出时不能调用std::cout 必须使用printf
+
+3、线程模型
+    gridDim.x=设置的线程块数
+    blockDim.x=设置的线程数
+    blockIdx.x  线程块的索引 0~gridDim.x-1
+    threadIdx.x  线程的索引 0~blockDim.x-1
+
+    //* 三维网格唯一的线程ID
+    const int OnlyblockId = blockIdx.x +
+                            gridDim.x * blockIdx.y +
+                            gridDim.x * gridDim.y * blockIdx.z;
+    const int OnlythreadId = threadIdx.z * blockDim.x * blockDim.y +
+                             threadIdx.y * blockDim.x + threadIdx.x;
+    const int OnlyId = OnlyblockId * blockDim.x * blockDim.y * blockDim.z +
+                       OnlythreadId;
+
+5、移植问题
+    虚拟架构尽可能选择低版本，避免出现兼容性问题
+    真实架构尽量选择高版本，充分发挥GPU性能
+    查看GPU架构信息：nvcc --list-gpu-arch
+        虚拟架构<=真实架构<=本机GPU架构
+
+    编译命令：(只写出选项)
+        -arch=compute_75 -code=sm_75
+        
+        兼容多个架构
+        -gencode=arch=compute_75,code=sm_75
+        -gencode=arch=compute_80,code=sm_85
+        
+        还需要确定cuda版本是否支持该架构
+
+6、程序运行错误检查
+    A.主机错误检查    
+        using example: ErrorCheck(cudaMemcpy(...), __FILE__, __LINE__);
+    B.核函数错误检查: 在调用后加上以下两行
+    eg.
+        func<<<2,2>>>();
+        //检查同步函数之上的最后一个错误
+        ErrorCheck(cudaGetLastError(), __FILE__, __LINE__);
+        ErrorCheck(cudaDeviceSynchronize(), __FILE__, __LINE__);
+
+7、运行时间监控
+    A.使用nsys工具: nsys profile ./xxx  生成nsys-rep文件
+    B.查看具体信息:  nsys stats xxx.nsys-rep
