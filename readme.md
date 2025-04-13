@@ -30,3 +30,13 @@ export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64:$LD_LIBRARY_PATH
     cp /usr/lib/wsl/lib/nvidia-smi /usr/bin/nvidia-smi
     chmod ogu+x /usr/bin/nvidia-smi
     ```
+### 3、目录结构
+- 代码相关均位于src/下，
+```
+src/
+├── xxx.cu  # 源代码
+├── clean_executa/  # 清理编译文件
+│   └── clean_executable.sh
+└── module/ # 模块
+    └── GPU_Module.cuh
+```

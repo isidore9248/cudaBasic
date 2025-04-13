@@ -12,24 +12,27 @@ NC='\033[0m' # No Color
 
 # 获取脚本自身的完整路径
 SCRIPT_PATH="$(realpath "$0")"
+# 获取脚本所在的目录
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+# 计算目标清理目录（脚本所在目录的上一级）
+TARGET_DIR="$(realpath "$SCRIPT_DIR/..")"
 
 # 显示脚本标题
 echo -e "${YELLOW}=== 可执行文件清理工具 ===${NC}"
 echo ""
 
 # 安全警告
-echo -e "${RED}警告：此脚本将删除当前目录及其子目录中的所有可执行文件！${NC}"
+echo -e "${RED}警告：此脚本将删除目标目录 (${TARGET_DIR}) 及其子目录中的所有可执行文件！${NC}"
 echo -e "${YELLOW}注意：脚本自身 (${SCRIPT_PATH}) 不会被删除。${NC}"
 echo ""
 
-# 显示当前目录
-current_dir=$(pwd)
-echo -e "当前工作目录: ${GREEN}${current_dir}${NC}"
+# 显示目标目录
+echo -e "目标清理目录: ${GREEN}${TARGET_DIR}${NC}"
 echo ""
 
-# 第一步：查找并显示所有可执行文件（排除自己）
-echo -e "${YELLOW}正在查找可执行文件...${NC}"
-executable_files=$(find . -type f -executable ! -path "$SCRIPT_PATH")
+# 第一步：查找并显示目标目录中的所有可执行文件（排除自己）
+echo -e "${YELLOW}正在查找目标目录 (${TARGET_DIR}) 中的可执行文件...${NC}"
+executable_files=$(find "$TARGET_DIR" -type f -executable ! -path "$SCRIPT_PATH")
 count=$(echo "$executable_files" | grep -c '[^[:space:]]') # 更准确的行数统计
 
 if [ "$count" -eq 0 ]; then
@@ -54,13 +57,13 @@ echo ""
 echo -e "${YELLOW}正在删除文件...${NC}"
 
 # 使用while循环处理文件名中的特殊字符
-find . -type f -executable ! -path "$SCRIPT_PATH" -print0 | while IFS= read -r -d '' file; do
+find "$TARGET_DIR" -type f -executable ! -path "$SCRIPT_PATH" -print0 | while IFS= read -r -d '' file; do
     echo "删除: $file"
     rm -f "$file"
 done
 
 # 检查删除结果
-remaining=$(find . -type f -executable ! -path "$SCRIPT_PATH" | wc -l)
+remaining=$(find "$TARGET_DIR" -type f -executable ! -path "$SCRIPT_PATH" | wc -l)
 echo ""
 if [ "$remaining" -eq 0 ]; then
     echo -e "${GREEN}所有可执行文件已成功删除。${NC}"
