@@ -15,7 +15,7 @@
     https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=deb_local
 下载cuda 11.8 wsl2 .deb
 
-- 设置环境变量： vi ~/.bashrc 添加以下内容：
+- 设置环境变量： `vi ~/.bashrc` 添加以下内容：
 
 
 ```sh
@@ -24,7 +24,7 @@ export PATH=/usr/local/cuda-11.8/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64:$LD_LIBRARY_PATH
 ```
 
-- 此时可以识别 nvcc --version 但是 nvidia-smi无法识别
+- 此时可以识别 `nvcc --version` 但是 `nvidia-smi`无法识别
     - 执行：
     ```sh
     cp /usr/lib/wsl/lib/nvidia-smi /usr/bin/nvidia-smi
